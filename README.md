@@ -20,7 +20,7 @@ The original Multicorn doesn't support newer potsgreSQL versions and seems to ha
 
 #### 3. Install this python package to your system
 
-#### 4. Install [this branch](https://github.com/johncant/py_grist_api/compare/jc_add_list_tables_columns?expand=1) of `py_grist_api`
+#### 4. Install [this branch](https://github.com/johncant/py_grist_api/tree/jc_add_list_tables_columns) of `py_grist_api`
 
 #### 5. Run this kind of SQL
 
