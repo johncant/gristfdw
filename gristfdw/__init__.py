@@ -32,7 +32,7 @@ def column_definition_grist_to_postgres(table, column):
     #      return mkcol(type_name="TIMESTAMP")
     # Choice, Ref, Reflist, Attachments not yet supported
     else:
-        raise ValueError(f"Unsupported column type \"{fields['type']}\"")
+        raise ValueError(f"Unsupported column type \"{fields['type']}\" for table \"{table}\" column \"{column['id']}\"")
 
 
 def table_definition_grist_to_postgres(table, columns):

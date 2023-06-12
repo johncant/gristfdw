@@ -1,0 +1,26 @@
+name: Run tests
+on:
+  push:
+    branches:
+      - '*'
+
+jobs:
+  build:
+
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+    steps:
+    - uses: actions/checkout@v3
+    - name: Set up Python
+      uses: actions/setup-python@v3
+      with:
+        python-version: "3.9.17"
+    - name: Install dependencies
+      run: |
+        python -m pip install --upgrade pip
+        python -m pip install .[test]
+    - name: Copy Grist persist dir
+      run: cp -r test/fixtures/grist_persist test/grist_persist
+    - name: Test with tox
+      run: tox
