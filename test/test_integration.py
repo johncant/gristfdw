@@ -200,7 +200,7 @@ def test_UPDATE(simple_table, table_name, conn, assert_grist_table):
     ])
 
 
-@pytest.mark.xfail(reason="Multicorn always passes us id 0 for postgres 14")
+# Failing on postgres 14+ with multicorn 2.4
 @pytest.mark.parametrize('table_name', ["Test_DELETE"])
 def test_DELETE(simple_table, table_name, conn, assert_grist_table):
 

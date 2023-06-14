@@ -1,7 +1,7 @@
-FROM postgres:15-bullseye
+FROM postgres:13-bullseye
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y update
-RUN DEBIAN_FRONTEND=noninteractive apt-get -y install wget build-essential python3-dev postgresql-server-dev-all python3-pip git
+RUN DEBIAN_FRONTEND=noninteractive apt-get -y install wget build-essential python3-dev postgresql-server-dev-13 python3-pip git
 
 RUN mkdir -p /opt/multicorn
 WORKDIR /opt/multicorn
