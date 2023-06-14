@@ -51,6 +51,17 @@ def table_definition_grist_to_postgres(table, columns):
     )
 
 
+def postgres_boolean_to_grist(val):
+    if val == 't':
+        return True
+    elif val == 'f':
+        return False
+    elif val is None:
+        return None
+    else:
+        raise ValueError(f"No conversion defined for postgres value \"{val}\"")
+
+
 class GristForeignDataWrapper(ForeignDataWrapper):
 
     def __init__(self, options, columns):
@@ -99,6 +110,17 @@ class GristForeignDataWrapper(ForeignDataWrapper):
     def row_grist_to_postgres(self, record):
         return record._asdict()
 
+    def row_postgres_to_grist(self, record):
+        grist_record = {}
+
+        for k, v in record.items():
+            if self.columns[k].type_name.upper() == "BOOLEAN":
+                grist_record[k] = postgres_boolean_to_grist(v)
+            else:
+                grist_record[k] = v
+
+        return grist_record
+
     def execute(self, quals, columns):
         # TODO - pass quals
         return [
@@ -109,9 +131,10 @@ class GristForeignDataWrapper(ForeignDataWrapper):
     def insert(self, new_values):
         assert new_values['id'] is None
         del new_values['id']
+
         results = self.grist.add_records(
             self.table_name,
-            [new_values]
+            [self.row_postgres_to_grist(new_values)]
         )
         new_id = results[0]
 
@@ -125,7 +148,7 @@ class GristForeignDataWrapper(ForeignDataWrapper):
         new_values['id'] = int(new_values['id'])
         results = self.grist.update_records(
             self.table_name,
-            record_dicts=[new_values]
+            record_dicts=[self.row_postgres_to_grist(new_values)]
         )
         return new_values
 
