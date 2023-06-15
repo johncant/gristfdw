@@ -8,17 +8,15 @@ This is a Grist Foreign Data Wrapper for PostgreSQL
 
 WIP. This FDW only supports Grist types Text, Numeric, Int, and Bool so far.
 
-Also, deletes do not yet work as expected.
-
 The column name `id` is reserved for the Grist record id
 
 ### How to use
 
-#### 1. Install PostgreSQL
+#### 1. Install PostgreSQL 13 (DELETE does not work with 14+)
 
 #### 2. Install [Multicorn 2](https://github.com/pgsql-io/multicorn2)
 
-The original Multicorn doesn't support newer potsgreSQL versions and seems to have a different python API
+The original Multicorn doesn't support newer potsgreSQL versions and seems to have a different python API. Tested with Multicorn 2.4
 
 #### 3. Install this python package to your system
 
