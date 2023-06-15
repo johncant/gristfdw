@@ -1,5 +1,7 @@
 # Grist FDW for PostgreSQL
 
+[![Run tests](https://github.com/johncant/gristfdw/actions/workflows/tests.yml/badge.svg)](https://github.com/johncant/gristfdw/actions/workflows/tests.yml)
+
 This is a Grist Foreign Data Wrapper for PostgreSQL
 
 ### State of development
