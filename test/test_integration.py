@@ -1,13 +1,13 @@
+from datetime import date, datetime
 from test.fixtures.integration import (assert_grist_table, conn, grist_api,
                                        schema, server, simple_table)
 
-from datetime import date
 import psycopg2
 import pytest
 from grist_api import GristDocAPI
 
 
-def test_IMPORT_FOREIGN_SCHEMA(conn, server, schema):
+def test_IMPORT_FOREIGN_SCHEMA(conn, server, schema, grist_api):
 
     with conn.cursor() as cur:
         cur.execute(f"""IMPORT FOREIGN SCHEMA ignored FROM SERVER {server} INTO {schema};""")
@@ -45,9 +45,9 @@ def test_INSERT(simple_table, table_name, conn, assert_grist_table):
     with conn.cursor() as cur:
         cur.execute(f"""
             INSERT INTO \"{table_name}\" (
-                col1, col2, col3, col4
+                col1, col2, col3, col4, col5
             ) VALUES (
-                'inserted', 4.9, 5, false
+                'inserted', 4.9, 5, false, '2024-01-01'
             ) RETURNING id
         """)
         data = cur.fetchall()
@@ -62,6 +62,14 @@ def test_INSERT(simple_table, table_name, conn, assert_grist_table):
             'col2': 3.6,
             'col3': 2,
             'col4': True,
+            # TODO - potential issue. dates entered in Grist through the UI are
+            # really timestamps for midnight in the client's timezone. This
+            # could cause problems. There's no time zone field in the Grist
+            # column information for date. Use Grist server/user info to
+            # convert the date?
+
+            # For now, we'll just set the expected value to this timestamp.
+            'col5': int(datetime(2023, 5, 21, 1, 0, 0).timestamp()),
             'manualSort': 1,
         },
         # Newly inserted row
@@ -71,6 +79,13 @@ def test_INSERT(simple_table, table_name, conn, assert_grist_table):
             'col2': 4.9,
             'col3': 5,
             'col4': False,
+            # TODO - unlike row 1, which we inserted through the Grist UI, row 2
+            # was inserted via gristfdw. row 2 date time zone is UTC or time
+            # zone naive. Grist has returned the value we inserted and not any
+            # time zone. We might need to be aware of Grist's server time zone.
+
+            # For now, we'll just set the document time zone to UTC.
+            'col5': int(datetime(2024, 1, 1, 0, 0, 0).timestamp()),
             'manualSort': 2,
         }
     ])
@@ -85,7 +100,8 @@ def test_UPDATE(simple_table, table_name, conn, assert_grist_table):
             SET col1 = 'updated',
                 col2 = 4.9,
                 col3 = 5,
-                col4 = false
+                col4 = false,
+                col5 = '2024-01-01'
             WHERE id = 1
         """)
 
@@ -97,6 +113,7 @@ def test_UPDATE(simple_table, table_name, conn, assert_grist_table):
             'col2': 4.9,
             'col3': 5,
             'col4': False,
+            'col5': int(datetime(2024, 1, 1, 0, 0, 0).timestamp()),
             'manualSort': 1,
         },
     ])

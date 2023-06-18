@@ -1,6 +1,6 @@
 from multicorn import ForeignDataWrapper, TableDefinition, ColumnDefinition
 from grist_api import GristDocAPI
-from datetime import date
+from datetime import date, datetime
 
 
 REQUIRED_OPTIONS=["doc_id", "server", "api_key"]
@@ -71,6 +71,14 @@ def grist_date_to_postgres(val):
     return date.fromtimestamp(val)
 
 
+def postgres_date_to_grist(val):
+    # Postgres/multicorn return a date
+    # Grist wants a unix timestamp
+    return int(
+        datetime(val.year, val.month, val.day, 0, 0, 0).timestamp()
+    )
+
+
 class GristForeignDataWrapper(ForeignDataWrapper):
 
     def __init__(self, options, columns):
@@ -136,6 +144,8 @@ class GristForeignDataWrapper(ForeignDataWrapper):
         for k, v in record.items():
             if self.columns[k].type_name.upper() == "BOOLEAN":
                 grist_record[k] = postgres_boolean_to_grist(v)
+            elif self.columns[k].type_name.upper() == "DATE":
+                grist_record[k] = postgres_date_to_grist(v)
             else:
                 grist_record[k] = v
 
