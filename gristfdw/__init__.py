@@ -1,5 +1,6 @@
 from multicorn import ForeignDataWrapper, TableDefinition, ColumnDefinition
 from grist_api import GristDocAPI
+from datetime import date
 
 
 REQUIRED_OPTIONS=["doc_id", "server", "api_key"]
@@ -25,8 +26,8 @@ def column_definition_grist_to_postgres(table, column):
         return mkcol(type_name="BIGINT")
     elif fields['type'] == 'Bool':
         return mkcol(type_name="BOOLEAN")
-    #  elif fields['type'] == 'Date':
-    #      return mkcol(type_name="DATE")
+    elif fields['type'] == 'Date':
+        return mkcol(type_name="DATE")
     #  elif fields['type'].startswith('DateTime:'):
     #      # TODO - handle timezones
     #      return mkcol(type_name="TIMESTAMP")
@@ -52,6 +53,8 @@ def table_definition_grist_to_postgres(table, columns):
 
 
 def postgres_boolean_to_grist(val):
+    # Postgres returns 't' or 'f'
+    # Grist wants a boolean
     if val == 't':
         return True
     elif val == 'f':
@@ -60,6 +63,12 @@ def postgres_boolean_to_grist(val):
         return None
     else:
         raise ValueError(f"No conversion defined for postgres value \"{val}\"")
+
+
+def grist_date_to_postgres(val):
+    # Grist returns a unix timestamp
+    # Multicorn wants a date
+    return date.fromtimestamp(val)
 
 
 class GristForeignDataWrapper(ForeignDataWrapper):
@@ -108,7 +117,18 @@ class GristForeignDataWrapper(ForeignDataWrapper):
         ]
 
     def row_grist_to_postgres(self, record):
-        return record._asdict()
+        postgres_record = {}
+
+        for k, v in record._asdict().items():
+            if k not in self.columns:
+                # ignored, like manualSort
+                continue
+            elif self.columns[k].type_name.upper() == "DATE":
+                postgres_record[k] = grist_date_to_postgres(v)
+            else:
+                postgres_record[k] = v
+
+        return postgres_record
 
     def row_postgres_to_grist(self, record):
         grist_record = {}

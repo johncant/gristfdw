@@ -1,6 +1,7 @@
 from test.fixtures.integration import (assert_grist_table, conn, grist_api,
                                        schema, server, simple_table)
 
+from datetime import date
 import psycopg2
 import pytest
 from grist_api import GristDocAPI
@@ -35,7 +36,7 @@ def test_SELECT(simple_table, table_name, conn):
         data = cur.fetchall()
 
     assert len(data) == 1
-    assert data[0] == (1, 'simple data', 3.6, 2, True)
+    assert data[0] == (1, 'simple data', 3.6, 2, True, date(2023, 5, 21))
 
 
 @pytest.mark.parametrize('table_name', ["Test_INSERT"])

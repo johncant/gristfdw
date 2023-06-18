@@ -74,7 +74,8 @@ def simple_table(conn, server, table_name):
                 col1 TEXT,
                 col2 FLOAT,
                 col3 BIGINT,
-                col4 BOOLEAN
+                col4 BOOLEAN,
+                col5 DATE
             )
             SERVER {server}
             OPTIONS (table_name '{table_name}')
