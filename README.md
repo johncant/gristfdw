@@ -6,11 +6,13 @@ This is a Grist Foreign Data Wrapper for PostgreSQL
 
 ### State of development
 
-WIP. This FDW only supports Grist types Text, Numeric, Int, and Bool so far.
+WIP. This FDW only supports Grist types Text, Numeric, Int, Bool, and Date so far.
 
 The column name `id` is reserved for the Grist record id
 
-### How to use
+## Installation
+
+### Native installation
 
 #### 1. Install PostgreSQL 13 (DELETE does not work with 14+)
 
@@ -20,9 +22,15 @@ The original Multicorn doesn't support newer potsgreSQL versions and seems to ha
 
 #### 3. Install this python package to your system
 
-#### 4. Install [this branch](https://github.com/johncant/py_grist_api/tree/jc_add_list_tables_columns) of `py_grist_api`
+#### 4. Install [this branch](https://github.com/johncant/py_grist_api/tree/jc_add_list_tables_columns) of `py_grist_api
 
-#### 5. Run this kind of SQL
+### Docker image
+
+The dockerfile for gristfdw just builds an extension of the `postgres` docker image. These dockerfiles are in `docker/` in this repo
+
+## Usage
+
+Run this kind of SQL
 
 ```sql
 -- Load multicorn
