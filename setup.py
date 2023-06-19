@@ -8,7 +8,7 @@ setup(
   packages=['gristfdw'],
   install_requires=["grist_api@git+https://github.com/johncant/py_grist_api@jc_add_list_tables_columns#egg=grist_api-0.1.0"],
   extras_require={
-      "test": ["pytest", "psycopg2", "tox", "tox-docker", "requests", "webbrowser"]
+      "test": ["pytest", "psycopg2", "tox", "tox-docker", "requests"]
   }
 )
 
