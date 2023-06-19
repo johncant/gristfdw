@@ -28,12 +28,20 @@ def column_definition_grist_to_postgres(table, column):
         return mkcol(type_name="BOOLEAN")
     elif fields['type'] == 'Date':
         return mkcol(type_name="DATE")
-    #  elif fields['type'].startswith('DateTime:'):
-    #      # TODO - handle timezones
-    #      return mkcol(type_name="TIMESTAMP")
-    # Choice, Ref, Reflist, Attachments not yet supported
+    elif fields['type'].startswith("Ref:"):
+        # Reference col. We can get the table name from `type`
+        # However, we don't really need it. This column is a foreign
+        # key into another table. However, Grist does not impose constraints,
+        # so there is no point in us doing that.
+        return mkcol(type_name="BIGINT")
+    # Any, Datetime, Choice, Choicelist, Ref, Reflist, Attachments not yet
+    # supported
     else:
-        raise ValueError(f"Unsupported column type \"{fields['type']}\" for table \"{table}\" column \"{column['id']}\"")
+        raise ValueError(
+            f"Unsupported column type \"{fields['type']}\" "
+            f"for table \"{table}\" "
+            f"column \"{column['id']}\""
+        )
 
 
 def table_definition_grist_to_postgres(table, columns):
@@ -153,6 +161,8 @@ class GristForeignDataWrapper(ForeignDataWrapper):
                 grist_record[k] = postgres_boolean_to_grist(v)
             elif self.columns[k].type_name.upper() == "DATE":
                 grist_record[k] = postgres_date_to_grist(v)
+            elif self.columns[k].type_name.upper() == "BIGINT":
+                grist_record[k] = int(v)
             else:
                 grist_record[k] = v
 

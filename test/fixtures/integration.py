@@ -76,7 +76,8 @@ def simple_table(conn, server, table_name):
                 col2 FLOAT,
                 col3 BIGINT,
                 col4 BOOLEAN,
-                col5 DATE
+                col5 DATE,
+                col9 BIGINT
             )
             SERVER {server}
             OPTIONS (table_name '{table_name}')
@@ -98,7 +99,15 @@ def assert_grist_table(table_name, grist_api):
         actual = grist_api.fetch_table(table_name)
 
         # Convert namedtuples to dicts
-        actual_asdict = [t._asdict() for t in actual]
+        # Filter out gristHelper_display, which is for reference columns
+        actual_asdict = [
+            {
+                k: v
+                for k, v in t._asdict().items()
+                if k != "gristHelper_Display"
+            }
+            for t in actual
+        ]
 
         assert actual_asdict == expected
 
