@@ -23,4 +23,4 @@ jobs:
     - name: Copy Grist persist dir
       run: cp -r test/fixtures/grist_persist test/grist_persist
     - name: Test with tox
-      run: tox
+      run: tox -- -vv
