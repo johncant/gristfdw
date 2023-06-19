@@ -55,6 +55,34 @@ SELECT * FROM Table1
 
 GPLv3
 
-### Contributing
+## Contributing
 
 Contributions welcome!
+
+### Running the tests
+
+1. Install this package 
+
+```bash
+python -m pip install -e .[test]
+```
+
+2. Run the tests
+
+```bash
+rm -rf test/grist_persist/ && cp -r test/fixtures/grist_persist/ test/ && tox
+```
+
+Arguments to tox after `--` are currently passed to pytest.
+
+The tests use a docker container each for grist and postgres.
+
+### Editing test data in Grist
+
+This repo includes Grist data as a test fixture. To edit this data, run
+
+```bash
+scripts/edit_grist_fixture
+```
+
+This runs Grist and opens a browser tab.

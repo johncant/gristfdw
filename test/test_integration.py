@@ -37,7 +37,7 @@ def test_SELECT(simple_table, table_name, conn):
         data = cur.fetchall()
 
     assert len(data) == 1
-    assert data[0] == (1, 'simple data', 3.6, 2, True, date(2023, 5, 21))
+    assert data[0] == (1, 'simple data', 3.6, 2, True, date(2023, 5, 21), 1)
 
 
 @pytest.mark.parametrize('table_name', ["Test_INSERT"])
@@ -46,9 +46,9 @@ def test_INSERT(simple_table, table_name, conn, assert_grist_table):
     with conn.cursor() as cur:
         cur.execute(f"""
             INSERT INTO \"{table_name}\" (
-                col1, col2, col3, col4, col5
+                col1, col2, col3, col4, col5, col9
             ) VALUES (
-                'inserted', 4.9, 5, false, '2024-01-01'
+                'inserted', 4.9, 5, false, '2024-01-01', 3
             ) RETURNING id
         """)
         data = cur.fetchall()
@@ -64,6 +64,7 @@ def test_INSERT(simple_table, table_name, conn, assert_grist_table):
             'col3': 2,
             'col4': True,
             'col5': grist_date(2023, 5, 21),
+            'col9': 1,
             'manualSort': 1,
         },
         # Newly inserted row
@@ -74,6 +75,7 @@ def test_INSERT(simple_table, table_name, conn, assert_grist_table):
             'col3': 5,
             'col4': False,
             'col5': grist_date(2024, 1, 1),
+            'col9': 3,
             'manualSort': 2,
         }
     ])
@@ -89,7 +91,8 @@ def test_UPDATE(simple_table, table_name, conn, assert_grist_table):
                 col2 = 4.9,
                 col3 = 5,
                 col4 = false,
-                col5 = '2024-01-01'
+                col5 = '2024-01-01',
+                col9 = 2
             WHERE id = 1
         """)
 
@@ -102,6 +105,7 @@ def test_UPDATE(simple_table, table_name, conn, assert_grist_table):
             'col3': 5,
             'col4': False,
             'col5': grist_date(2024, 1, 1),
+            'col9': 2,
             'manualSort': 1,
         },
     ])
