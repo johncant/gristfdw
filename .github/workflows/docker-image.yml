@@ -2,7 +2,7 @@ name: Docker Image
 
 on:
   workflow_run:
-    workflows: [ "tests" ]
+    workflows: [ "Run tests" ]
     types:
       - completed
     branches: [ "main", "docker" ]
