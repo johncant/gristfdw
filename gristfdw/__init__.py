@@ -1,6 +1,7 @@
-from multicorn import ForeignDataWrapper, TableDefinition, ColumnDefinition
-from grist_api import GristDocAPI
+from datetime import date, datetime, timezone
 
+from grist_api import GristDocAPI
+from multicorn import ColumnDefinition, ForeignDataWrapper, TableDefinition
 
 REQUIRED_OPTIONS=["doc_id", "server", "api_key"]
 
@@ -25,8 +26,8 @@ def column_definition_grist_to_postgres(table, column):
         return mkcol(type_name="BIGINT")
     elif fields['type'] == 'Bool':
         return mkcol(type_name="BOOLEAN")
-    #  elif fields['type'] == 'Date':
-    #      return mkcol(type_name="DATE")
+    elif fields['type'] == 'Date':
+        return mkcol(type_name="DATE")
     #  elif fields['type'].startswith('DateTime:'):
     #      # TODO - handle timezones
     #      return mkcol(type_name="TIMESTAMP")
@@ -52,6 +53,8 @@ def table_definition_grist_to_postgres(table, columns):
 
 
 def postgres_boolean_to_grist(val):
+    # Postgres returns 't' or 'f'
+    # Grist wants a boolean
     if val == 't':
         return True
     elif val == 'f':
@@ -60,6 +63,27 @@ def postgres_boolean_to_grist(val):
         return None
     else:
         raise ValueError(f"No conversion defined for postgres value \"{val}\"")
+
+
+def grist_date_to_postgres(val):
+    # Grist returns a unix timestamp
+    # Multicorn wants a date
+    # We can't use date.fromtimestamp or datetime.fromtimestamp, since these
+    # use the local timezone to map to a date.
+    return datetime.utcfromtimestamp(val).date()
+
+
+def postgres_date_to_grist(val):
+    # Postgres/multicorn return a date
+    # Grist wants a unix timestamp
+    # Grist's API uses timestamps representing midnight UTC.
+    return int(
+        datetime(
+            val.year, val.month, val.day,
+            0, 0, 0,
+            tzinfo=timezone.utc
+        ).timestamp()
+    )
 
 
 class GristForeignDataWrapper(ForeignDataWrapper):
@@ -108,7 +132,18 @@ class GristForeignDataWrapper(ForeignDataWrapper):
         ]
 
     def row_grist_to_postgres(self, record):
-        return record._asdict()
+        postgres_record = {}
+
+        for k, v in record._asdict().items():
+            if k not in self.columns:
+                # ignored, like manualSort
+                continue
+            elif self.columns[k].type_name.upper() == "DATE":
+                postgres_record[k] = grist_date_to_postgres(v)
+            else:
+                postgres_record[k] = v
+
+        return postgres_record
 
     def row_postgres_to_grist(self, record):
         grist_record = {}
@@ -116,6 +151,8 @@ class GristForeignDataWrapper(ForeignDataWrapper):
         for k, v in record.items():
             if self.columns[k].type_name.upper() == "BOOLEAN":
                 grist_record[k] = postgres_boolean_to_grist(v)
+            elif self.columns[k].type_name.upper() == "DATE":
+                grist_record[k] = postgres_date_to_grist(v)
             else:
                 grist_record[k] = v
 
@@ -153,5 +190,6 @@ class GristForeignDataWrapper(ForeignDataWrapper):
         return new_values
 
     def delete(self, rowid):
-        # TODO - this does not work as expected. It tries to delete row 0
+        # TODO - this does not work as expected with postgres 14+. It tries to
+        # delete row 0
         self.grist.delete_records(self.table_name, record_ids=[int(rowid)])
