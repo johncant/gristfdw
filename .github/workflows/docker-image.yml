@@ -5,7 +5,7 @@ on:
     workflows: [ "Run tests" ]
     types:
       - completed
-    branches: [ "main", "docker" ]
+    branches: [ "main" ]
 
 jobs:
 
@@ -42,3 +42,4 @@ jobs:
         with:
           push: true
           tags: gristfdw:main-bullseye-postgres13-multicorn2.4
+          file: docker/gristfdw/Dockerfile
