@@ -38,8 +38,5 @@ jobs:
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Push
-        uses: docker/build-push-action@v4
-        with:
-          push: true
-          tags: gristfdw:main-bullseye-postgres13-multicorn2.4
-          file: docker/gristfdw/Dockerfile
+        run: |
+          docker push gristfdw:main-bullseye-postgres13-multicorn2.4
