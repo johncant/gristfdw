@@ -1,0 +1,33 @@
+#!/bin/bash
+
+set -e
+
+start_grist() {
+  docker run \
+           -itd \
+           -p8484:8484 \
+           -eGRIST_DEFAULT_EMAIL=test@example.com \
+           -v "$PWD/test/fixtures/grist_persist:/persist" \
+           gristlabs/grist
+}
+
+stop_grist() {
+  docker kill "$1"
+}
+
+interrupt() {
+  trap SIGINT
+  echo "Stopping container. Press Ctrl+C again to exit immediately"
+  stop_grist "$CONTAINER_ID"
+  exit
+}
+
+export CONTAINER_ID="$(start_grist)"
+
+trap "interrupt" INT
+
+sleep 1
+python -m webbrowser -t "http://localhost:8484"
+
+sleep infinity &
+wait $!
