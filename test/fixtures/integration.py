@@ -1,6 +1,7 @@
 from test.defaults import (GRIST_API_KEY, GRIST_DOC_ID,
                            GRIST_SERVER_FROM_LOCAL, GRIST_SERVER_FROM_POSTGRES,
-                           POSTGRES_HOST, POSTGRES_USER, POSTGRES_PASSWORD, POSTGRES_PORT)
+                           POSTGRES_HOST, POSTGRES_PASSWORD, POSTGRES_PORT,
+                           POSTGRES_USER)
 
 import psycopg2
 import pytest

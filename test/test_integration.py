@@ -1,6 +1,7 @@
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 from test.fixtures.integration import (assert_grist_table, conn, grist_api,
                                        schema, server, simple_table)
+from test.helper import grist_date
 
 import psycopg2
 import pytest
@@ -62,14 +63,7 @@ def test_INSERT(simple_table, table_name, conn, assert_grist_table):
             'col2': 3.6,
             'col3': 2,
             'col4': True,
-            # TODO - potential issue. dates entered in Grist through the UI are
-            # really timestamps for midnight in the client's timezone. This
-            # could cause problems. There's no time zone field in the Grist
-            # column information for date. Use Grist server/user info to
-            # convert the date?
-
-            # For now, we'll just set the expected value to this timestamp.
-            'col5': int(datetime(2023, 5, 21, 1, 0, 0).timestamp()),
+            'col5': grist_date(2023, 5, 21),
             'manualSort': 1,
         },
         # Newly inserted row
@@ -79,13 +73,7 @@ def test_INSERT(simple_table, table_name, conn, assert_grist_table):
             'col2': 4.9,
             'col3': 5,
             'col4': False,
-            # TODO - unlike row 1, which we inserted through the Grist UI, row 2
-            # was inserted via gristfdw. row 2 date time zone is UTC or time
-            # zone naive. Grist has returned the value we inserted and not any
-            # time zone. We might need to be aware of Grist's server time zone.
-
-            # For now, we'll just set the document time zone to UTC.
-            'col5': int(datetime(2024, 1, 1, 0, 0, 0).timestamp()),
+            'col5': grist_date(2024, 1, 1),
             'manualSort': 2,
         }
     ])
@@ -113,7 +101,7 @@ def test_UPDATE(simple_table, table_name, conn, assert_grist_table):
             'col2': 4.9,
             'col3': 5,
             'col4': False,
-            'col5': int(datetime(2024, 1, 1, 0, 0, 0).timestamp()),
+            'col5': grist_date(2024, 1, 1),
             'manualSort': 1,
         },
     ])

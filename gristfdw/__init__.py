@@ -1,7 +1,7 @@
-from multicorn import ForeignDataWrapper, TableDefinition, ColumnDefinition
-from grist_api import GristDocAPI
-from datetime import date, datetime
+from datetime import date, datetime, timezone
 
+from grist_api import GristDocAPI
+from multicorn import ColumnDefinition, ForeignDataWrapper, TableDefinition
 
 REQUIRED_OPTIONS=["doc_id", "server", "api_key"]
 
@@ -68,14 +68,21 @@ def postgres_boolean_to_grist(val):
 def grist_date_to_postgres(val):
     # Grist returns a unix timestamp
     # Multicorn wants a date
-    return date.fromtimestamp(val)
+    # We can't use date.fromtimestamp or datetime.fromtimestamp, since these
+    # use the local timezone to map to a date.
+    return datetime.utcfromtimestamp(val).date()
 
 
 def postgres_date_to_grist(val):
     # Postgres/multicorn return a date
     # Grist wants a unix timestamp
+    # Grist's API uses timestamps representing midnight UTC.
     return int(
-        datetime(val.year, val.month, val.day, 0, 0, 0).timestamp()
+        datetime(
+            val.year, val.month, val.day,
+            0, 0, 0,
+            tzinfo=timezone.utc
+        ).timestamp()
     )
 
 
@@ -183,5 +190,6 @@ class GristForeignDataWrapper(ForeignDataWrapper):
         return new_values
 
     def delete(self, rowid):
-        # TODO - this does not work as expected. It tries to delete row 0
+        # TODO - this does not work as expected with postgres 14+. It tries to
+        # delete row 0
         self.grist.delete_records(self.table_name, record_ids=[int(rowid)])
