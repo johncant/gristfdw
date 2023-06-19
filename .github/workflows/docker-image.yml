@@ -39,4 +39,4 @@ jobs:
 
       - name: Push
         run: |
-          docker push gristfdw:main-bullseye-postgres13-multicorn2.4
+          docker push gristfdw/gristfdw:main-bullseye-postgres13-multicorn2.4
