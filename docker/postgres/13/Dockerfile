@@ -1,3 +1,6 @@
+# TODO - It would be helpful to parametrize the postgres and multicorn versions.
+# Unfortunately not yet sure how to do this with tox-docker, so this can wait.
+
 FROM postgres:13-bullseye
 
 RUN DEBIAN_FRONTEND=noninteractive apt-get -y update
