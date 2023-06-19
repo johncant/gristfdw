@@ -51,6 +51,56 @@ IMPORT FOREIGN SCHEMA foo FROM SERVER test INTO public;
 SELECT * FROM Table1
 ```
 
+## Production deployment
+
+Use this in production at your own risk.
+
+Extending postgres using C extensions is risky, and a database is one place where risk tolerance should be low.
+
+Thanks to Multicorn, the risk of segfaults should be contained within Multicorn. However, caution is advised.
+
+One way to contain the risk of unreliability would be to run the gristfdw docker container (based on postgres), as a proxy to Grist.
+
+```
+# Example only
+docker run -it \
+           -ePOSTGRES_PASSWORD=<REPLACE_ME> \
+           -ePOSTGRES_USER=gristfdw \
+           -ePOSTGRES_DB=gristfdw \
+           -p5433:5432 \
+           gristfdw:main-bullseye-postgres13-multicorn2.4
+```
+
+Now, set up gristfdw
+
+```
+$ psql postgres://gristfdw:<REPLACE_ME>@localhost:5433/gristfdw
+
+CREATE EXTENSION multicorn;
+DROP SERVER IF EXISTS test CASCADE;
+CREATE SERVER test FOREIGN DATA WRAPPER multicorn OPTIONS (
+  wrapper 'gristfdw.GristForeignDataWrapper',
+  api_key YOUR_API_KEY,
+  doc_id YOUR_GRIST_DOC_ID,
+  server YOUR_GRIST_SERVER
+);
+IMPORT FOREIGN SCHEMA foo FROM SERVER test INTO public;
+```
+
+Example only. Log into your production DB and use postgres_fdw to talk to our proxy
+
+```
+CREATE SERVER grist_proxy
+FOREIGN DATA WRAPPER postgres_fdw
+OPTIONS (...);
+
+CREATE USER MAPPING ...
+
+IMPORT FOREIGN SCHEMA ... FROM SERVER grist_proxy INTO ...
+```
+
+The risk of database downtime is now contained.
+
 ### License
 
 GPLv3
