@@ -122,3 +122,80 @@ def test_DELETE(simple_table, table_name, conn, assert_grist_table):
         """)
 
     assert_grist_table([])
+
+
+@pytest.mark.parametrize('table_name', ["Test_SELECT_NULLs"])
+def test_SELECT_NULLs(simple_table, table_name, conn):
+
+    with conn.cursor() as cur:
+        cur.execute(f"""
+            SELECT * FROM \"{table_name}\"
+        """)
+        data = cur.fetchall()
+
+    assert len(data) == 1
+
+    # Findings from writing this:
+    #   - Grist doesn't allow null for Text columns, and defaults to ''
+    #   - Grist doesn't allow null for Bool columns, and defaults to False
+    assert data[0] == (1, '', None, None, False, None, 0)
+
+
+@pytest.mark.parametrize('table_name', ["Test_INSERT_NULLs"])
+def test_INSERT_NULLs(simple_table, table_name, conn, assert_grist_table):
+
+    with conn.cursor() as cur:
+        cur.execute(f"""
+            INSERT INTO \"{table_name}\" (
+                col1, col2, col3, col4, col5, col9
+            ) VALUES (
+                NULL, NULL, NULL, NULL, NULL, NULL
+            ) RETURNING id
+        """)
+        data = cur.fetchall()
+
+    assert data == [(1,)]
+
+    assert_grist_table([
+        # Newly inserted row
+        {
+            'id': 1,
+            # col1: Actually, when you delete Text values via the UI, you get ''
+            'col1': None,
+            'col2': None,
+            'col3': None,
+            'col4': False,
+            'col5': None,
+            'col9': 0,
+            'manualSort': 1,
+        }
+    ])
+
+@pytest.mark.parametrize('table_name', ["Test_UPDATE_NULLs"])
+def test_UPDATE_NULLs(simple_table, table_name, conn, assert_grist_table):
+
+    with conn.cursor() as cur:
+        cur.execute(f"""
+            UPDATE \"{table_name}\" SET
+            col1 = NULL,
+            col2 = NULL,
+            col3 = NULL,
+            col4 = NULL,
+            col5 = NULL,
+            col9 = NULL
+        """)
+
+    assert_grist_table([
+        # Newly inserted row
+        {
+            'id': 1,
+            # col1: Actually, when you delete Text values via the UI, you get ''
+            'col1': None,
+            'col2': None,
+            'col3': None,
+            'col4': False,
+            'col5': None,
+            'col9': 0,
+            'manualSort': 1,
+        }
+    ])
