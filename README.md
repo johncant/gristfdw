@@ -50,6 +50,13 @@ IMPORT FOREIGN SCHEMA foo FROM SERVER test INTO public;
 -- Example
 SELECT * FROM Table1
 ```
+## Handling of NULL values or blanks in Grist
+
+By design, this FDW is unopinionated about handing NULL values. Grist sets default values for certain fields and this could lead to unexpected results. The following has been noticed with Grist 1.1.1.
+
+  - `Text`: In the UI, hitting the delete key sets this to ''. However, setting it to null using py\_grist\_api sets it to null
+  - `Bool`: In the UI, hitting the delete key sets this to `false`. Setting this to null using py\_grist\_api sets it to `false`.
+  - `Reference`: In the ui, hitting the delete key sets this to 0. Setting this to null using py\_grist\_api sets it to `0`.
 
 ## Production deployment
 
