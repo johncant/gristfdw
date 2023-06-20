@@ -6,6 +6,18 @@ from multicorn import ColumnDefinition, ForeignDataWrapper, TableDefinition
 REQUIRED_OPTIONS=["doc_id", "server", "api_key"]
 
 
+def null_passthrough(func):
+    """
+    Decorator for handling None conveniently
+    """
+    def inner(val):
+        if val is None:
+            return None
+        return func(val)
+
+    return inner
+
+
 def column_definition_grist_to_postgres(table, column):
     def mkcol(**options):
         return ColumnDefinition(
@@ -60,6 +72,7 @@ def table_definition_grist_to_postgres(table, columns):
     )
 
 
+@null_passthrough
 def postgres_boolean_to_grist(val):
     # Postgres returns 't' or 'f'
     # Grist wants a boolean
@@ -67,12 +80,11 @@ def postgres_boolean_to_grist(val):
         return True
     elif val == 'f':
         return False
-    elif val is None:
-        return None
     else:
         raise ValueError(f"No conversion defined for postgres value \"{val}\"")
 
 
+@null_passthrough
 def grist_date_to_postgres(val):
     # Grist returns a unix timestamp
     # Multicorn wants a date
@@ -81,6 +93,7 @@ def grist_date_to_postgres(val):
     return datetime.utcfromtimestamp(val).date()
 
 
+@null_passthrough
 def postgres_date_to_grist(val):
     # Postgres/multicorn return a date
     # Grist wants a unix timestamp
@@ -92,6 +105,11 @@ def postgres_date_to_grist(val):
             tzinfo=timezone.utc
         ).timestamp()
     )
+
+
+@null_passthrough
+def postgres_int_to_grist(val):
+    return int(val)
 
 
 class GristForeignDataWrapper(ForeignDataWrapper):
@@ -146,6 +164,8 @@ class GristForeignDataWrapper(ForeignDataWrapper):
             if k not in self.columns:
                 # ignored, like manualSort
                 continue
+            elif v is None:
+                postgres_record[k] = None
             elif self.columns[k].type_name.upper() == "DATE":
                 postgres_record[k] = grist_date_to_postgres(v)
             else:
@@ -162,7 +182,7 @@ class GristForeignDataWrapper(ForeignDataWrapper):
             elif self.columns[k].type_name.upper() == "DATE":
                 grist_record[k] = postgres_date_to_grist(v)
             elif self.columns[k].type_name.upper() == "BIGINT":
-                grist_record[k] = int(v)
+                grist_record[k] = postgres_int_to_grist(v)
             else:
                 grist_record[k] = v
 
