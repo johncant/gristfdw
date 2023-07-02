@@ -37,7 +37,7 @@ def test_SELECT(simple_table, table_name, conn):
         data = cur.fetchall()
 
     assert len(data) == 1
-    assert data[0] == (1, 'simple data', 3.6, 2, True, date(2023, 5, 21), 1)
+    assert data[0] == (1, 'simple data', 3.6, 2, True, date(2023, 5, 21), 1, [1, 2, 3])
 
 
 @pytest.mark.parametrize('table_name', ["Test_INSERT"])
@@ -46,9 +46,9 @@ def test_INSERT(simple_table, table_name, conn, assert_grist_table):
     with conn.cursor() as cur:
         cur.execute(f"""
             INSERT INTO \"{table_name}\" (
-                col1, col2, col3, col4, col5, col9
+                col1, col2, col3, col4, col5, col9, col10
             ) VALUES (
-                'inserted', 4.9, 5, false, '2024-01-01', 3
+                'inserted', 4.9, 5, false, '2024-01-01', 3, '{{2, 3}}'
             ) RETURNING id
         """)
         data = cur.fetchall()
@@ -65,6 +65,7 @@ def test_INSERT(simple_table, table_name, conn, assert_grist_table):
             'col4': True,
             'col5': grist_date(2023, 5, 21),
             'col9': 1,
+            'col10': ['L', 1, 2, 3],
             'manualSort': 1,
         },
         # Newly inserted row
@@ -76,6 +77,7 @@ def test_INSERT(simple_table, table_name, conn, assert_grist_table):
             'col4': False,
             'col5': grist_date(2024, 1, 1),
             'col9': 3,
+            'col10': ['L', 2, 3],
             'manualSort': 2,
         }
     ])
@@ -92,7 +94,8 @@ def test_UPDATE(simple_table, table_name, conn, assert_grist_table):
                 col3 = 5,
                 col4 = false,
                 col5 = '2024-01-01',
-                col9 = 2
+                col9 = 2,
+                col10 = '{{1}}'
             WHERE id = 1
         """)
 
@@ -106,6 +109,7 @@ def test_UPDATE(simple_table, table_name, conn, assert_grist_table):
             'col4': False,
             'col5': grist_date(2024, 1, 1),
             'col9': 2,
+            'col10': ['L', 1],
             'manualSort': 1,
         },
     ])
@@ -138,7 +142,8 @@ def test_SELECT_NULLs(simple_table, table_name, conn):
     # Findings from writing this:
     #   - Grist doesn't allow null for Text columns, and defaults to ''
     #   - Grist doesn't allow null for Bool columns, and defaults to False
-    assert data[0] == (1, '', None, None, False, None, 0)
+    #   - Grist doesn't allow null for RefList columns, and defaults to []
+    assert data[0] == (1, '', None, None, False, None, 0, [])
 
 
 @pytest.mark.parametrize('table_name', ["Test_INSERT_NULLs"])
@@ -147,9 +152,9 @@ def test_INSERT_NULLs(simple_table, table_name, conn, assert_grist_table):
     with conn.cursor() as cur:
         cur.execute(f"""
             INSERT INTO \"{table_name}\" (
-                col1, col2, col3, col4, col5, col9
+                col1, col2, col3, col4, col5, col9, col10
             ) VALUES (
-                NULL, NULL, NULL, NULL, NULL, NULL
+                NULL, NULL, NULL, NULL, NULL, NULL, NULL
             ) RETURNING id
         """)
         data = cur.fetchall()
@@ -167,6 +172,7 @@ def test_INSERT_NULLs(simple_table, table_name, conn, assert_grist_table):
             'col4': False,
             'col5': None,
             'col9': 0,
+            'col10': None,
             'manualSort': 1,
         }
     ])
@@ -182,7 +188,8 @@ def test_UPDATE_NULLs(simple_table, table_name, conn, assert_grist_table):
             col3 = NULL,
             col4 = NULL,
             col5 = NULL,
-            col9 = NULL
+            col9 = NULL,
+            col10 = NULL
         """)
 
     assert_grist_table([
@@ -196,6 +203,7 @@ def test_UPDATE_NULLs(simple_table, table_name, conn, assert_grist_table):
             'col4': False,
             'col5': None,
             'col9': 0,
+            'col10': None,
             'manualSort': 1,
         }
     ])

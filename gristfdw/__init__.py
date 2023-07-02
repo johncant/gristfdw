@@ -48,6 +48,8 @@ def column_definition_grist_to_postgres(table, column):
         return mkcol(type_name="BIGINT")
     # Any, Datetime, Choice, Choicelist, Ref, Reflist, Attachments not yet
     # supported
+    elif fields['type'].startswith("RefList:"):
+        return mkcol(type_name="BIGINT[]")
     else:
         raise ValueError(
             f"Unsupported column type \"{fields['type']}\" "
@@ -112,6 +114,24 @@ def postgres_int_to_grist(val):
     return int(val)
 
 
+@null_passthrough
+def grist_reflist_to_postgres(val):
+    # List in test_SELECT was ['L', 1, 2, 3]. Why?
+    return [
+        v
+        for v in val
+        if isinstance(v, int)
+    ]
+
+
+@null_passthrough
+def postgres_int_array_to_grist(val):
+    return ['L'] + [
+        int(v)
+        for v in val
+    ]
+
+
 class GristForeignDataWrapper(ForeignDataWrapper):
 
     def __init__(self, options, columns):
@@ -168,6 +188,8 @@ class GristForeignDataWrapper(ForeignDataWrapper):
                 postgres_record[k] = None
             elif self.columns[k].type_name.upper() == "DATE":
                 postgres_record[k] = grist_date_to_postgres(v)
+            elif self.columns[k].type_name.upper() == "BIGINT[]":
+                postgres_record[k] = grist_reflist_to_postgres(v)
             else:
                 postgres_record[k] = v
 
@@ -183,6 +205,8 @@ class GristForeignDataWrapper(ForeignDataWrapper):
                 grist_record[k] = postgres_date_to_grist(v)
             elif self.columns[k].type_name.upper() == "BIGINT":
                 grist_record[k] = postgres_int_to_grist(v)
+            elif self.columns[k].type_name.upper() == "BIGINT[]":
+                grist_record[k] = postgres_int_array_to_grist(v)
             else:
                 grist_record[k] = v
 
