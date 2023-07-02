@@ -6,7 +6,7 @@ This is a Grist Foreign Data Wrapper for PostgreSQL
 
 ### State of development
 
-WIP. This FDW only supports Grist types Text, Numeric, Int, Bool, and Date so far.
+WIP. This FDW only supports Grist types Text, Numeric, Int, Bool, Date, Ref, and RefList so far.
 
 The column name `id` is reserved for the Grist record id
 

@@ -77,7 +77,8 @@ def simple_table(conn, server, table_name):
                 col3 BIGINT,
                 col4 BOOLEAN,
                 col5 DATE,
-                col9 BIGINT
+                col9 BIGINT,
+                col10 BIGINT[]
             )
             SERVER {server}
             OPTIONS (table_name '{table_name}')
@@ -104,7 +105,7 @@ def assert_grist_table(table_name, grist_api):
             {
                 k: v
                 for k, v in t._asdict().items()
-                if k != "gristHelper_Display"
+                if not k.startswith("gristHelper_Display")
             }
             for t in actual
         ]
